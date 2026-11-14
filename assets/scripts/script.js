@@ -1,6 +1,11 @@
 (function () {
     "use strict";
 
+    var siteConfig = window.SITE_CONFIG || {};
+    function sitePath(value) {
+        return (siteConfig.basePath || "") + value;
+    }
+
     var editorState = {
         mode: "content",
         pendingContent: {},
@@ -228,7 +233,7 @@
                         return null;
                     })
                     .then(function () {
-                        window.location.href = "/editor/";
+                        window.location.href = sitePath("/editor/");
                     });
             }
         });
@@ -331,7 +336,7 @@
                 message.textContent = "Already logged in. Redirecting...";
                 message.style.color = "#2e8cff";
                 window.setTimeout(function () {
-                    window.location.href = "/";
+                    window.location.href = sitePath("/");
                 }, 400);
             }
         });
@@ -353,7 +358,7 @@
                     message.textContent = "Login successful. Redirecting...";
                     message.style.color = "#2e8cff";
                     window.setTimeout(function () {
-                        window.location.href = "/";
+                        window.location.href = sitePath("/");
                     }, 300);
                 })
                 .catch(function () {
@@ -482,7 +487,7 @@
                 });
             },
             {
-                threshold: 0.12,
+                threshold: 0,
                 rootMargin: "0px 0px -8% 0px"
             }
         );
@@ -832,6 +837,57 @@
     }
 
 
+    function initLoanEngine() {
+        var form = document.getElementById("loanEngineForm");
+        if (!form) return;
+        var amount = document.getElementById("loanAmount");
+        var apr = document.getElementById("apr");
+        var term = document.getElementById("termYears");
+        var start = document.getElementById("startMonth");
+        var message = document.getElementById("formMessage");
+        if (!amount || !apr || !term || !start) return;
+
+        function setText(id, value) {
+            var element = document.getElementById(id);
+            if (element) element.textContent = value;
+        }
+
+        var now = new Date();
+        if (!start.value) start.value = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0");
+
+        function update() {
+            if (!form.checkValidity()) {
+                if (message) message.textContent = "Enter valid values in each field to update your estimate.";
+                return;
+            }
+            var principal = Number(amount.value);
+            var rate = Number(apr.value);
+            var months = Math.round(Number(term.value) * 12);
+            var monthly = calculateMonthlyInstallment(principal, rate, months);
+            var total = monthly * months;
+            var parts = start.value.split("-").map(Number);
+            var payoff = new Date(parts[0], parts[1] - 1 + months, 1);
+            var payoffLabel = payoff.toLocaleDateString("en-CA", { month: "long", year: "numeric" });
+            setText("loanAmountDisplay", formatCad(principal, 0));
+            setText("aprDisplay", rate.toFixed(1) + "%");
+            setText("monthlyPayment", formatCad(monthly));
+            setText("totalRepayment", formatCad(total));
+            setText("totalInterest", formatCad(total - principal));
+            setText("payoffDate", payoffLabel);
+            setText("metricMonthly", formatCad(monthly));
+            setText("metricInterest", formatCad(total - principal));
+            setText("metricPayoff", payoffLabel);
+            if (message) message.textContent = "Estimate updated. Actual lender rates and fees may vary.";
+        }
+        form.addEventListener("input", update);
+        form.addEventListener("change", update);
+        form.addEventListener("submit", function (event) {
+            event.preventDefault();
+            if (form.reportValidity()) update();
+        });
+        update();
+    }
+
     function initApplicationPage() {
         var form = document.getElementById("loanApplicationForm");
         var backButton = document.getElementById("applicationBack");
@@ -1116,7 +1172,7 @@
             e.preventDefault();
 
             if (inquiryType.value === "brand") {
-                window.location.href = "/brand-collab/";
+                window.location.href = sitePath("/brand-collab/");
                 return;
             }
 
@@ -3152,6 +3208,12 @@
         }
 
         sticky.textContent = "Check Loan Options";
+        if (siteConfig.static) {
+            document.querySelectorAll('a[href^="/"]').forEach(function (link) {
+                var href = link.getAttribute("href");
+                if (siteConfig.basePath && !href.startsWith(siteConfig.basePath + "/")) link.setAttribute("href", sitePath(href));
+            });
+        }
     }
 
     function initSocialProofCounter() {
@@ -3198,13 +3260,13 @@
             return;
         }
 
-        sticky.setAttribute("href", sticky.getAttribute("data-fallback-href") || "/loan-calculator/");
+        sticky.setAttribute("href", sitePath(sticky.getAttribute("data-fallback-href") || "/loan-calculator/"));
     }
 
     function initEstimateEmailCapture() {
-        var amountInput = document.getElementById("loanAmount");
-        var aprInput = document.getElementById("apr");
-        var termYearsInput = document.getElementById("termYears");
+        var amountInput = document.getElementById("loanAmount") || document.getElementById("loanAmountRange");
+        var aprInput = document.getElementById("apr") || document.getElementById("aprRange");
+        var termYearsInput = document.getElementById("termYears") || document.getElementById("termRange");
         var resultsPanel = document.querySelector(".loan-results");
         var form = document.getElementById("estimateEmailForm");
         var emailInput;
@@ -3240,14 +3302,38 @@
             return;
         }
 
+        if (siteConfig.static) {
+            emailInput.required = false;
+            emailInput.hidden = true;
+            form.querySelector("label").textContent = "Save this estimate to your device";
+            form.querySelector('button[type="submit"]').textContent = "Download Loan Estimate";
+        }
+
         form.addEventListener("submit", function (event) {
             event.preventDefault();
+            if (siteConfig.static) {
+                var text = "Loan estimate (CAD)\nAmount: " + amountInput.value +
+                    "\nAPR: " + aprInput.value + "%\nTerm: " + termYearsInput.value +
+                    (termYearsInput.id === "termRange" ? " months" : " years") +
+                    "\nMonthly payment: " + monthlyOutput.textContent +
+                    "\nTotal repayment: " + repaymentOutput.textContent +
+                    "\nTotal interest: " + interestOutput.textContent +
+                    "\nPayoff: " + payoffOutput.textContent + "\nFor planning only; not a loan offer.";
+                var url = URL.createObjectURL(new Blob([text], { type: "text/plain" }));
+                var download = document.createElement("a");
+                download.href = url;
+                download.download = "loan-estimate.txt";
+                download.click();
+                window.setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+                message.textContent = "Estimate downloaded to your device.";
+                return;
+            }
 
             var email = emailInput.value.trim();
             var estimate = {
                 principal: Number(amountInput.value),
                 apr: Number(aprInput.value),
-                termYears: Number(termYearsInput.value),
+                termYears: Number(termYearsInput.value) / (termYearsInput.id === "termRange" ? 12 : 1),
                 monthlyPayment: parseCurrency(monthlyOutput.textContent),
                 totalRepayment: parseCurrency(repaymentOutput.textContent),
                 totalInterest: parseCurrency(interestOutput.textContent),
@@ -3288,7 +3374,7 @@
                 })
             })
                 .then(function () {
-                    message.textContent = "Estimate sent. Check your inbox.";
+                    message.textContent = "Estimate saved. Email delivery is not configured.";
                     message.style.color = "#3de0c5";
                 })
                 .catch(function (error) {
@@ -3298,11 +3384,30 @@
         });
     }
 
+    function initStaticForms() {
+        ["loanApplicationForm", "editorLoginForm", "contactForm", "collabForm"].forEach(function (id) {
+            var form = document.getElementById(id);
+            if (!form) return;
+            var notice = document.createElement("div");
+            notice.className = "card";
+            notice.setAttribute("role", "status");
+            var text = document.createElement("p");
+            text.textContent = id === "editorLoginForm"
+                ? "The page editor requires the application server and is unavailable on GitHub Pages."
+                : "This GitHub Pages site provides loan planning tools. Online submissions are unavailable here; no information has been sent.";
+            var link = document.createElement("a");
+            link.href = id === "contactForm" || id === "collabForm" ? "mailto:support@trustedcashloans.ca" : sitePath("/") + "#calculator";
+            link.textContent = id === "contactForm" || id === "collabForm" ? "Open your email app to contact support" : "Use the loan calculator";
+            notice.append(text, link);
+            form.replaceWith(notice);
+        });
+    }
+
     function initPageFeatures(body) {
         initConversionScaffolding();
         initSocialProofCounter();
         initStickyCta();
-        initEstimateEmailCapture();
+
 
         if (body.classList.contains("page-about")) {
             initAboutPage();
@@ -3341,6 +3446,8 @@
         }
 
         initHomePage();
+        initLoanEngine();
+        initEstimateEmailCapture();
         initDebtConsolidationPage();
         initAutoLoanPage();
         initBorrowingPowerPage();
@@ -3369,10 +3476,15 @@
         }
 
         initThemeMode(body);
+        document.querySelectorAll('a[href="#calculator"]').forEach(function (link) {
+            if (!document.getElementById("calculator")) link.setAttribute("href", sitePath("/") + "#calculator");
+        });
+        if (siteConfig.static) initStaticForms();
 
+        initPageFeatures(body);
+        initMotion();
+        if (siteConfig.static) return;
         applyEditorEditsForPage().then(function () {
-            initMotion();
-            initPageFeatures(body);
 
             if (body.classList.contains("page-editor-login")) {
                 initEditorLoginPage();

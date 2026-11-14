@@ -7,7 +7,9 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js",
-    "generate:seo": "node scripts/generate-programmatic-seo.js"
+    "generate:seo": "node scripts/generate-programmatic-seo.js",
+    "build:pages": "node scripts/build-pages.js",
+    "test": "node --test"
   },
   "engines": {
     "node": ">=18"
