@@ -935,194 +935,6 @@
         update();
     }
 
-    function initApplicationPage() {
-        var form = document.getElementById("loanApplicationForm");
-        var backButton = document.getElementById("applicationBack");
-        var nextButton = document.getElementById("applicationNext");
-        var submitButton = document.getElementById("applicationSubmit");
-        var progressBar = document.getElementById("applicationProgressBar");
-        var progressText = document.getElementById("applicationProgressText");
-        var message = document.getElementById("applicationMessage");
-        var successBox = document.getElementById("applicationSuccess");
-        var provinceSelect = document.getElementById("province");
-        var steps = Array.prototype.slice.call(document.querySelectorAll(".app-step"));
-        var currentStep = 1;
-        var finalStep = steps.length;
-
-        if (
-            !form ||
-            !backButton ||
-            !nextButton ||
-            !submitButton ||
-            !progressBar ||
-            !progressText ||
-            !message ||
-            !successBox ||
-            !provinceSelect ||
-            finalStep === 0
-        ) {
-            return;
-        }
-
-        function updateStepUi() {
-            steps.forEach(function (step) {
-                var stepNumber = Number(step.getAttribute("data-step"));
-                step.classList.toggle("hidden", stepNumber !== currentStep);
-            });
-
-            progressBar.style.width = String((currentStep / finalStep) * 100) + "%";
-            progressText.textContent = "Step " + String(currentStep) + " of " + String(finalStep);
-            backButton.classList.toggle("hidden", currentStep === 1);
-            nextButton.classList.toggle("hidden", currentStep === finalStep);
-            submitButton.classList.toggle("hidden", currentStep !== finalStep);
-        }
-
-        function validateCurrentStep() {
-            var stepElement = document.querySelector('.app-step[data-step="' + String(currentStep) + '"]');
-
-            if (!stepElement) {
-                return false;
-            }
-
-            var fields = stepElement.querySelectorAll("input, select, textarea");
-            for (var i = 0; i < fields.length; i += 1) {
-                var field = fields[i];
-                if (!field.checkValidity()) {
-                    field.reportValidity();
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        function getApplicationPayload() {
-            return {
-                loanRequest: {
-                    requestedAmount: Number(document.getElementById("requestedAmount").value),
-                    loanPurpose: document.getElementById("loanPurpose").value,
-                    province: document.getElementById("province").value,
-                    preferredTermMonths: Number(document.getElementById("preferredTermMonths").value)
-                },
-                identity: {
-                    firstName: document.getElementById("firstName").value.trim(),
-                    lastName: document.getElementById("lastName").value.trim(),
-                    dateOfBirth: document.getElementById("dateOfBirth").value,
-                    email: document.getElementById("email").value.trim(),
-                    phone: document.getElementById("phone").value.trim(),
-                    sinLast4: document.getElementById("sinLast4").value.trim()
-                },
-                address: {
-                    streetAddress: document.getElementById("streetAddress").value.trim(),
-                    city: document.getElementById("city").value.trim(),
-                    postalCode: document.getElementById("postalCode").value.trim().toUpperCase(),
-                    housingStatus: document.getElementById("housingStatus").value,
-                    monthlyHousingCost: Number(document.getElementById("monthlyHousingCost").value),
-                    timeAtAddressMonths: Number(document.getElementById("timeAtAddressMonths").value)
-                },
-                employment: {
-                    employmentStatus: document.getElementById("employmentStatus").value,
-                    employerName: document.getElementById("employerName").value.trim(),
-                    jobTitle: document.getElementById("jobTitle").value.trim(),
-                    timeEmployedMonths: Number(document.getElementById("timeEmployedMonths").value),
-                    monthlyIncome: Number(document.getElementById("monthlyIncome").value),
-                    incomeFrequency: document.getElementById("incomeFrequency").value
-                },
-                obligations: {
-                    creditScoreRange: document.getElementById("creditScoreRange").value,
-                    existingDebtPayments: Number(document.getElementById("existingDebtPayments").value),
-                    bankruptcies: document.getElementById("bankruptcies").value,
-                    coApplicant: document.getElementById("coApplicant").value
-                },
-                banking: {
-                    bankName: document.getElementById("bankName").value.trim(),
-                    bankAccountType: document.getElementById("bankAccountType").value,
-                    directDeposit: document.getElementById("directDeposit").value,
-                    nextPayDate: document.getElementById("nextPayDate").value,
-                    fundingMethod: document.getElementById("fundingMethod").value
-                },
-                compliance: {
-                    idType: document.getElementById("idType").value,
-                    idNumber: document.getElementById("idNumber").value.trim(),
-                    consentCreditCheck: document.getElementById("consentCreditCheck").value,
-                    consentElectronicDocs: document.getElementById("consentElectronicDocs").value,
-                    consentPrivacy: document.getElementById("consentPrivacy").value
-                }
-            };
-        }
-
-        var queryProvince = new URLSearchParams(window.location.search).get("province");
-        if (queryProvince) {
-            provinceSelect.value = queryProvince.toUpperCase();
-        }
-
-        backButton.addEventListener("click", function () {
-            if (currentStep > 1) {
-                currentStep -= 1;
-                updateStepUi();
-            }
-        });
-
-        nextButton.addEventListener("click", function () {
-            if (!validateCurrentStep()) {
-                return;
-            }
-
-            if (currentStep < finalStep) {
-                currentStep += 1;
-                updateStepUi();
-            }
-        });
-
-        form.addEventListener("submit", function (event) {
-            event.preventDefault();
-
-            if (!validateCurrentStep()) {
-                return;
-            }
-
-            var payload = getApplicationPayload();
-
-            if (
-                payload.compliance.consentCreditCheck !== "yes" ||
-                payload.compliance.consentElectronicDocs !== "yes" ||
-                payload.compliance.consentPrivacy !== "yes"
-            ) {
-                message.textContent = "You must provide all required consents to submit.";
-                message.style.color = "#ff6b6b";
-                return;
-            }
-
-            submitButton.disabled = true;
-            submitButton.textContent = "Submitting...";
-            message.textContent = "";
-
-            apiRequest("/api/loan-applications", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(payload)
-            })
-                .then(function () {
-                    form.style.display = "none";
-                    successBox.style.display = "block";
-                    message.textContent = "Submission complete.";
-                    message.style.color = "#3de0c5";
-                })
-                .catch(function (error) {
-                    message.textContent = error.message || "Submission failed. Please try again.";
-                    message.style.color = "#ff6b6b";
-                })
-                .finally(function () {
-                    submitButton.disabled = false;
-                    submitButton.textContent = "Submit Application";
-                });
-        });
-
-        updateStepUi();
-    }
-
     function initAboutPage() {
         var cards = document.querySelectorAll(".card");
 
@@ -3432,7 +3244,7 @@
     }
 
     function initStaticForms() {
-        ["loanApplicationForm", "editorLoginForm", "contactForm", "collabForm"].forEach(function (id) {
+        ["editorLoginForm", "contactForm", "collabForm"].forEach(function (id) {
             var form = document.getElementById(id);
             if (!form) return;
             var notice = document.createElement("div");
@@ -3488,9 +3300,6 @@
             initStarterPlanPage();
         }
 
-        if (body.classList.contains("page-application")) {
-            initApplicationPage();
-        }
 
         initHomePage();
         initLoanEngine();

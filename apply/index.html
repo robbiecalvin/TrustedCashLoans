@@ -10,6 +10,8 @@
 <link rel="icon" href="../assets/images/trusted-cash-loans-logo.png">
 <link rel="stylesheet" href="../assets/style/style.css">
 <script src="../assets/scripts/script.js" defer></script>
+<script src="../assets/scripts/application-schema.js" defer></script>
+<script src="../assets/scripts/application.js" defer></script>
 </head>
 <body class="page-application">
 <header>
@@ -43,146 +45,23 @@
 
 <section class="form-section">
     <div class="container">
+        <a href="#loanApplicationForm" class="btn btn-primary">Start your application</a>
         <div class="application-header">
-            <p class="trust-note">Encrypted submission. Your data is used only to review your loan request.</p>
-            <div class="progress-wrap">
-                <div class="progress-bar" id="applicationProgressBar"></div>
-            </div>
-            <p id="applicationProgressText" class="notice">Step 1 of 7</p>
+            <p>Your answers stay in this page until you submit. Please do not use a shared device.</p>
+            <div class="progress-wrap" role="progressbar" aria-label="Application progress" aria-valuemin="1" aria-valuemax="7" aria-valuenow="1" id="applicationProgress"><div class="progress-bar" id="applicationProgressBar"></div></div>
+            <p id="applicationProgressText" aria-live="polite">Step 1 of 7</p>
         </div>
-
-        <form id="loanApplicationForm" aria-label="Canadian loan application">
-            <section class="app-step" data-step="1">
-                <h2>Step 1: Tell Us About the Loan You Need</h2>
-                <div>
-                    <label for="requestedAmount">Requested Amount (CAD)</label>
-                    <input type="number" id="requestedAmount" min="500" max="500000" step="100" required>
-                </div>
-                <div>
-                    <label for="loanPurpose">Loan Purpose</label>
-                    <select id="loanPurpose" required>
-                        <option value="">Select purpose</option>
-                        <option value="personal">Personal Loan</option>
-                        <option value="debt_consolidation">Debt Consolidation</option>
-                        <option value="auto">Auto Loan</option>
-                        <option value="emergency">Emergency Loan</option>
-                        <option value="business">Business Loan</option>
-                    </select>
-                </div>
-                <div>
-                    <label for="province">Province/Territory</label>
-                    <select id="province" required>
-                        <option value="">Select province or territory</option>
-                        <option value="BC">British Columbia</option>
-                        <option value="AB">Alberta</option>
-                        <option value="SK">Saskatchewan</option>
-                        <option value="MB">Manitoba</option>
-                        <option value="ON">Ontario</option>
-                        <option value="QC">Quebec</option>
-                        <option value="NB">New Brunswick</option>
-                        <option value="NS">Nova Scotia</option>
-                        <option value="PE">Prince Edward Island</option>
-                        <option value="NL">Newfoundland and Labrador</option>
-                        <option value="YT">Yukon</option>
-                        <option value="NT">Northwest Territories</option>
-                        <option value="NU">Nunavut</option>
-                    </select>
-                </div>
-                <div>
-                    <label for="preferredTermMonths">Preferred Term (Months)</label>
-                    <input type="number" id="preferredTermMonths" min="6" max="120" step="1" required>
-                </div>
-            </section>
-
-            <section class="app-step hidden" data-step="2">
-                <h2>Step 2: Your Identity and Contact Info</h2>
-                <div><label for="firstName">First Name</label><input type="text" id="firstName" required></div>
-                <div><label for="lastName">Last Name</label><input type="text" id="lastName" required></div>
-                <div><label for="dateOfBirth">Date of Birth</label><input type="date" id="dateOfBirth" required></div>
-                <div><label for="email">Email</label><input type="email" id="email" required></div>
-                <div><label for="phone">Phone Number</label><input type="tel" id="phone" required></div>
-                <div><label for="sinLast4">Last 4 digits of SIN</label><input type="text" id="sinLast4" pattern="[0-9]{4}" maxlength="4" required></div>
-            </section>
-
-            <section class="app-step hidden" data-step="3">
-                <h2>Step 3: Where You Live</h2>
-                <div><label for="streetAddress">Street Address</label><input type="text" id="streetAddress" required></div>
-                <div><label for="city">City</label><input type="text" id="city" required></div>
-                <div><label for="postalCode">Postal Code</label><input type="text" id="postalCode" placeholder="A1A 1A1" required></div>
-                <div>
-                    <label for="housingStatus">Housing Status</label>
-                    <select id="housingStatus" required>
-                        <option value="">Select status</option>
-                        <option value="own">Own</option>
-                        <option value="rent">Rent</option>
-                        <option value="family">Living with Family</option>
-                        <option value="other">Other</option>
-                    </select>
-                </div>
-                <div><label for="monthlyHousingCost">Monthly Housing Cost (CAD)</label><input type="number" id="monthlyHousingCost" min="0" step="1" required></div>
-                <div><label for="timeAtAddressMonths">Time at Address (Months)</label><input type="number" id="timeAtAddressMonths" min="0" step="1" required></div>
-            </section>
-
-            <section class="app-step hidden" data-step="4">
-                <h2>Step 4: Your Work and Income</h2>
-                <div>
-                    <label for="employmentStatus">Employment Status</label>
-                    <select id="employmentStatus" required>
-                        <option value="">Select status</option>
-                        <option value="full_time">Full-Time</option>
-                        <option value="part_time">Part-Time</option>
-                        <option value="self_employed">Self-Employed</option>
-                        <option value="contract">Contract</option>
-                        <option value="retired">Retired</option>
-                        <option value="benefits">Government Benefits</option>
-                    </select>
-                </div>
-                <div><label for="employerName">Employer or Business Name</label><input type="text" id="employerName" required></div>
-                <div><label for="jobTitle">Job Title or Occupation</label><input type="text" id="jobTitle" required></div>
-                <div><label for="timeEmployedMonths">Time Employed (Months)</label><input type="number" id="timeEmployedMonths" min="0" step="1" required></div>
-                <div><label for="monthlyIncome">Net Monthly Income (CAD)</label><input type="number" id="monthlyIncome" min="0" step="1" required></div>
-                <div><label for="incomeFrequency">Income Frequency</label><select id="incomeFrequency" required><option value="">Select</option><option value="weekly">Weekly</option><option value="biweekly">Bi-Weekly</option><option value="semi_monthly">Semi-Monthly</option><option value="monthly">Monthly</option></select></div>
-            </section>
-
-            <section class="app-step hidden" data-step="5">
-                <h2>Step 5: Your Monthly Financial Commitments</h2>
-                <div><label for="creditScoreRange">Estimated Credit Score Range</label><select id="creditScoreRange" required><option value="">Select range</option><option value="300-559">300-559</option><option value="560-659">560-659</option><option value="660-724">660-724</option><option value="725+">725+</option><option value="unknown">I don't know</option></select></div>
-                <div><label for="existingDebtPayments">Current Monthly Debt Payments (CAD)</label><input type="number" id="existingDebtPayments" min="0" step="1" required></div>
-                <div><label for="bankruptcies">Any bankruptcy or consumer proposal in last 7 years?</label><select id="bankruptcies" required><option value="">Select</option><option value="no">No</option><option value="yes">Yes</option></select></div>
-                <div><label for="coApplicant">Applying with a co-applicant?</label><select id="coApplicant" required><option value="">Select</option><option value="no">No</option><option value="yes">Yes</option></select></div>
-            </section>
-
-            <section class="app-step hidden" data-step="6">
-                <h2>Step 6: Banking Details</h2>
-                <div><label for="bankName">Primary Bank Name</label><input type="text" id="bankName" required></div>
-                <div><label for="bankAccountType">Bank Account Type</label><select id="bankAccountType" required><option value="">Select type</option><option value="chequing">Chequing</option><option value="savings">Savings</option></select></div>
-                <div><label for="directDeposit">Do you receive direct deposit?</label><select id="directDeposit" required><option value="">Select</option><option value="yes">Yes</option><option value="no">No</option></select></div>
-                <div><label for="nextPayDate">Next Pay Date</label><input type="date" id="nextPayDate" required></div>
-                <div><label for="fundingMethod">Preferred Funding Method</label><select id="fundingMethod" required><option value="">Select method</option><option value="eft">EFT</option><option value="interac">Interac e-Transfer</option></select></div>
-            </section>
-
-            <section class="app-step hidden" data-step="7">
-                <h2>Step 7: Consent and Final Submit</h2>
-                <div><label for="idType">Government ID Type</label><select id="idType" required><option value="">Select ID type</option><option value="drivers_license">Driver's Licence</option><option value="passport">Passport</option><option value="provincial_id">Provincial ID</option></select></div>
-                <div><label for="idNumber">ID Number</label><input type="text" id="idNumber" required></div>
-                <div><label for="consentCreditCheck">Credit Check Consent</label><select id="consentCreditCheck" required><option value="">Select</option><option value="yes">I consent</option><option value="no">I do not consent</option></select></div>
-                <div><label for="consentElectronicDocs">Electronic Documents Consent</label><select id="consentElectronicDocs" required><option value="">Select</option><option value="yes">I consent</option><option value="no">I do not consent</option></select></div>
-                <div><label for="consentPrivacy">Privacy Policy Acceptance</label><select id="consentPrivacy" required><option value="">Select</option><option value="yes">I agree</option><option value="no">I do not agree</option></select></div>
-                <p class="notice">By submitting, you confirm the information is complete and accurate.</p>
-            </section>
-
+        <noscript><p>Please enable JavaScript to complete this guided application.</p></noscript>
+        <form id="loanApplicationForm" aria-label="Loan application" novalidate>
+            <div id="applicationSteps"></div>
             <div class="application-actions">
-                <button type="button" id="applicationBack" class="btn btn-secondary hidden">Back</button>
-                <button type="button" id="applicationNext" class="btn btn-primary">Next Step</button>
-                <button type="submit" id="applicationSubmit" class="btn btn-primary hidden">Submit Application</button>
+                <button type="button" id="applicationBack" class="btn btn-secondary" hidden>Back</button>
+                <button type="button" id="applicationNext" class="btn btn-primary">Continue</button>
+                <button type="submit" id="applicationSubmit" class="btn btn-primary" hidden>Submit application</button>
             </div>
         </form>
-
-        <div class="success-box" id="applicationSuccess">
-            <h3>Application Submitted</h3>
-            <p>We received your application. A specialist will contact you with next steps.</p>
-        </div>
-        <p id="applicationMessage" class="form-message"></p>
+        <p id="applicationMessage" role="status" aria-live="polite"></p>
+        <div id="applicationSuccess" hidden tabindex="-1"><h2>Application received</h2><p>Your application has been sent for review. This is not a loan approval.</p></div>
     </div>
 </section>
 

@@ -7,7 +7,7 @@ const base = (process.env.PAGES_BASE_PATH || '').replace(/\/$/, '');
 if (base && !/^\/[A-Za-z0-9._-]+$/.test(base)) throw new Error('Invalid Pages base path');
 if (output === root || root.startsWith(output + path.sep)) throw new Error('Output must not contain the checkout');
 fs.mkdirSync(output, { recursive: true });
-const files = execFileSync('git', ['ls-files', '-z'], { cwd: root }).toString().split('\0').filter(Boolean);
+const files = execFileSync('git', ['ls-files', '--cached', '--others', '--exclude-standard', '-z'], { cwd: root }).toString().split('\0').filter(Boolean);
 let count = 0;
 for (const file of files) {
   if (!file.endsWith('.html') && !file.startsWith('assets/') &&

@@ -27,3 +27,19 @@ npm start
 The Express server uses port 3000 by default (`PORT` overrides it). Optional configuration: `EDITOR_USERNAME`, `EDITOR_PASSWORD`, `SESSION_SECRET`. Set these through the process environment; `.env` is not automatically loaded. Server-backed submissions write local files under `data/`. The estimate endpoint stores requests but does not have an email delivery integration.
 
 `npm run generate:seo` regenerates tracked content and is not required to run or deploy the existing site.
+
+## Guided application and Google Sheets
+
+`/apply/` uses seven stages with conditional previous address (12 months or less), previous employment (less than 3 months), and outstanding-loan details. The last stage reviews answers before a truthful-information declaration, optional nine-digit SIN, and required credit-check consent. Answers are not saved in browser storage. The server validates all active fields and sends one row to Sheets; it does not also write the application to local JSON/CSV. Success appears only after Sheets confirms delivery.
+
+To enable delivery on the Node server:
+
+1. Create a dedicated Google Sheet with a blank tab named `Applications` (or set `GOOGLE_SHEETS_TAB`). Keep the tab dedicated to this application; the server creates and checks its header.
+2. Enable Google Sheets API in a Google Cloud project and create a service account. Share the Sheet with that account's email as an Editor. Keep access restricted to the people handling applications.
+3. Supply `GOOGLE_SHEETS_SPREADSHEET_ID`, `GOOGLE_SERVICE_ACCOUNT_EMAIL`, and `GOOGLE_PRIVATE_KEY` securely in the server's process environment. The private key accepts actual newlines or escaped `\n`. Never put it in browser JavaScript, a committed file, or chat. `.env` is not loaded automatically.
+4. Allow server HTTPS requests to `oauth2.googleapis.com` and `sheets.googleapis.com`, then restart `npm start`.
+5. Submit a test application containing synthetic data and confirm its row in the Sheet before accepting live applications. Remove the synthetic row afterward.
+
+Google Sheets values are written in RAW mode so applicant text cannot become spreadsheet formulas. Each browser submission has a UUID; retries check column A before appending. Use a single Node server instance for this implementation; multiple instances need shared deduplication/locking before scaling. Restrict access to the Sheet because it contains personal and financial information, including optional SINs. Do not log application bodies.
+
+The application cannot submit on GitHub Pages: Google credentials belong on a backend. Host the Node server over HTTPS to accept applications. Missing configuration returns 503; Google delivery failures return 502 and keep answers available for retry. Automated tests mock Google responses; live delivery requires the configured Sheet and service-account credentials.
