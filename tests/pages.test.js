@@ -47,3 +47,18 @@ for (const base of ['', '/TrustedCashLoans']) {
     } finally { fs.rmSync(output, { recursive: true, force: true }); }
   });
 }
+
+test('Branch-based Pages resolves original HTML assets without a build', () => {
+  const files = execFileSync('git', ['ls-files', '-z'], { cwd: root }).toString().split('\0').filter(file => file.endsWith('.html'));
+  assert.ok(files.length > 800);
+  for (const file of files) {
+    const html = fs.readFileSync(path.join(root, file), 'utf8');
+    for (const match of html.matchAll(/\b(?:src|href|srcset)=['"]([^'"]+)/g)) {
+      const value = match[1];
+      if (/^(?:[a-z]+:|\/\/|#)/i.test(value)) continue;
+      assert.ok(!value.startsWith('/'), `${file}: root-based path ${value} breaks repository Pages`);
+      const pathname = value.split(/[?#]/)[0];
+      if (pathname) assert.ok(fs.existsSync(path.resolve(root, path.dirname(file), pathname)), `${file}: missing ${value}`);
+    }
+  }
+});

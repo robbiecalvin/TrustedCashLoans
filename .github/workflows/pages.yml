@@ -24,6 +24,8 @@ jobs:
       - name: Configure Pages
         id: pages
         uses: actions/configure-pages@v5
+      - name: Validate public links and both Pages deployment modes
+        run: npm test
       - name: Build static site
         env:
           PAGES_BASE_PATH: ${{ steps.pages.outputs.base_path }}
@@ -34,3 +36,7 @@ jobs:
       - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v4
+      - name: Verify deployed pages and assets
+        env:
+          SITE_URL: ${{ steps.deployment.outputs.page_url }}
+        run: node scripts/check-deployment.js "$SITE_URL"

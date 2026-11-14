@@ -4,7 +4,7 @@
 
 The GitHub Actions workflow in `.github/workflows/pages.yml` builds and deploys the public site on pushes to `main`, or when run manually. In the repository's **Settings → Pages**, set the deployment source to **GitHub Actions**. Push these changes to `main` to publish them.
 
-The build uses the Pages base path reported by GitHub, so images, styles, scripts, and links work with either a repository URL or a custom domain. It publishes HTML, public assets, and dashboard/simulator scripts; it excludes the Node server, dependencies, Git metadata, and application data.
+Public HTML uses relative links, so images, styles, scripts, and links work even when GitHub publishes directly from the main branch. The Actions build additionally configures static mode and uses the Pages base path reported by GitHub. The deployment workflow checks live HTML, CSS, scripts, and PNG images after publication. It publishes HTML, public assets, and dashboard/simulator scripts; it excludes the Node server, dependencies, Git metadata, and application data.
 
 To build and validate locally with Node.js 18 or newer:
 

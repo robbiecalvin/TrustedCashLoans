@@ -1,7 +1,12 @@
 (function () {
     "use strict";
 
-    var siteConfig = window.SITE_CONFIG || {};
+    var scriptUrl = document.currentScript ? new URL(document.currentScript.src) : null;
+    var scriptBase = scriptUrl ? scriptUrl.pathname.replace(/\/assets\/scripts\/script\.js$/, "") : "";
+    var siteConfig = window.SITE_CONFIG || {
+        static: /(?:^|\.)github\.io$/.test(window.location.hostname),
+        basePath: scriptBase
+    };
     function sitePath(value) {
         return (siteConfig.basePath || "") + value;
     }
