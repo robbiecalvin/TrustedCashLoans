@@ -117,7 +117,11 @@
             if(!response.ok)throw new Error(result.error||'Unable to submit. Please try again.');
             form.reset();form.hidden=true;
             const success=document.getElementById('applicationSuccess');success.hidden=false;success.focus();
-            document.getElementById('applicationReview').replaceChildren();message.textContent='Application reference: '+result.id;
+            document.getElementById('applicationReview').replaceChildren();
+            const emailNotice=result.emailStatus==='sent'
+                ? 'A confirmation email has been sent. Please check your inbox and spam folder.'
+                : 'Your application was received, but we could not confirm the email was sent. You do not need to submit again.';
+            message.textContent='We will get back to you within 24 hours about whether we have found a lender based on the information you provided.\n'+emailNotice+'\nApplication reference: '+result.id;
         } catch(error) {message.textContent=error.name==='TimeoutError'?'Delivery could not be confirmed. Retry to check or complete this application.':error.message;}
         finally {busy=false;back.disabled=next.disabled=submit.disabled=false;submit.textContent='Submit application';enabled.forEach(c=>c.disabled=false);conditional();}
     });

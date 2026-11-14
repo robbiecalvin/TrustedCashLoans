@@ -43,3 +43,13 @@ To enable delivery on the Node server:
 Google Sheets values are written in RAW mode so applicant text cannot become spreadsheet formulas. Each browser submission has a UUID; retries check column A before appending. Use a single Node server instance for this implementation; multiple instances need shared deduplication/locking before scaling. Restrict access to the Sheet because it contains personal and financial information, including optional SINs. Do not log application bodies.
 
 The application cannot submit on GitHub Pages: Google credentials belong on a backend. Host the Node server over HTTPS to accept applications. Missing configuration returns 503; Google delivery failures return 502 and keep answers available for retry. Automated tests mock Google responses; live delivery requires the configured Sheet and service-account credentials.
+
+## Application confirmation emails
+
+After Google Sheets accepts an application, the Node backend sends a confirmation to the applicant's email through Resend. The message says: “We have received your application. We will get back to you within 24 hours to let you know whether we have found a lender for you based on the information you provided.” It includes the application reference and no financial details or SIN.
+
+Configure `RESEND_API_KEY` securely and set `APPLICATION_EMAIL_FROM` to an address on a domain verified in your Resend account (for example, `Trusted Cash Loans <applications@your-verified-domain>`). Allow HTTPS to `api.resend.com`, then restart the Node server. Existing Google Sheets/backend configuration is still required. GitHub Pages cannot send these emails.
+
+A `Confirmation email status` column is added to the known application header automatically, preserving existing answers. Status `sent` means the provider accepted the email, not guaranteed inbox delivery. Missing email configuration records `not_configured`; provider failure records `failed`. The API still confirms the application was received and the page explains when an email could not be confirmed. Do not ask the applicant to resubmit just because email failed.
+
+Retries of the same application use the saved recipient and a stable Resend idempotency key. Confirmed sends are skipped. An uncertain send older than 23 hours is returned as `needs_review` rather than automatically sending again outside the provider's 24-hour idempotency window. There is no background email retry worker: operators must monitor failed/pending/unconfigured rows and follow up. Before going live, test an application to an inbox you control and verify both the Sheet status and actual email arrival. Tests use mocked provider responses; they do not send mail.

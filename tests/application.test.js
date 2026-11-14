@@ -32,7 +32,7 @@ test('Sheets appends RAW fields and deduplicates retries without keeping local a
  const client=createSheetsClient({env,fetchImpl:async(url,options)=>{
   calls.push({url,options});let value={};
   if(url.includes('oauth2'))value={access_token:'test-token',expires_in:3600};
-  else if(options.method==='GET')value={values:url.includes('1%3A1')?[columns]:rows.map(r=>[r[0]])};
+  else if(options.method==='GET')value={values:url.includes('1%3A1')?[columns]:url.includes('A%3AA')?rows.map(r=>[r[0]]):[rows[1]]};
   else if(options.method==='PUT')rows.push(JSON.parse(options.body).values[0]);
   else {rows.push(JSON.parse(options.body).values[0]);value={updates:{updatedRows:1}};}
   return {ok:true,json:async()=>value};

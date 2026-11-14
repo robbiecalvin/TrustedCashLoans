@@ -8,6 +8,8 @@ const path = require("path");
 const applicationSchema = require("./assets/scripts/application-schema");
 const { configured: sheetsConfigured, createSheetsClient } = require("./lib/google-sheets");
 const sheets = createSheetsClient();
+const { createApplicationMailer } = require("./lib/application-email");
+const sendApplicationConfirmation = createApplicationMailer();
 const app = express();
 
 const ROOT_DIR = __dirname;
@@ -322,8 +324,8 @@ app.post("/api/loan-applications", async (req, res) => {
     return res.status(503).json({ error: "Application delivery is not configured yet. Your application has not been submitted. Please contact us." });
   }
   try {
-    await sheets.append(req.body.requestId, result.data);
-    return res.json({ ok: true, id: req.body.requestId });
+    const delivery = await sheets.append(req.body.requestId, result.data, sendApplicationConfirmation);
+    return res.json({ ok: true, id: req.body.requestId, emailStatus: delivery.emailStatus });
   } catch (error) {
     // Never log application answers, Google tokens, private keys, or provider response bodies.
     return res.status(502).json({ error: "Delivery could not be confirmed. Please retry this application." });
