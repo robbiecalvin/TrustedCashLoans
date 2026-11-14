@@ -457,6 +457,48 @@
         });
     }
 
+    function initMobileNavigation() {
+        var nav = document.querySelector(".nav");
+        var links = nav ? nav.querySelector(".nav-links") : null;
+        if (!links) return;
+        var oldToggle = nav.querySelector(".mobile-toggle");
+        var button = document.createElement("button");
+        button.type = "button";
+        button.id = "mobileToggle";
+        button.className = "mobile-toggle";
+        button.textContent = "☰";
+        button.setAttribute("aria-label", "Open navigation menu");
+        links.id = links.id || "siteNavigation";
+        button.setAttribute("aria-controls", links.id);
+        if (oldToggle) oldToggle.replaceWith(button);
+        else nav.appendChild(button);
+        nav.classList.add("nav-collapsible");
+
+        function setOpen(open) {
+            nav.classList.toggle("is-menu-open", open);
+            button.setAttribute("aria-expanded", String(open));
+            button.setAttribute("aria-label", open ? "Close navigation menu" : "Open navigation menu");
+            button.textContent = open ? "×" : "☰";
+        }
+        setOpen(false);
+        button.addEventListener("click", function () {
+            setOpen(button.getAttribute("aria-expanded") !== "true");
+        });
+        links.addEventListener("click", function (event) {
+            if (event.target.closest("a")) setOpen(false);
+        });
+        document.addEventListener("keydown", function (event) {
+            if (event.key === "Escape" && button.getAttribute("aria-expanded") === "true") {
+                setOpen(false);
+                button.focus();
+            }
+        });
+        document.addEventListener("click", function (event) {
+            if (!nav.contains(event.target)) setOpen(false);
+        });
+        window.matchMedia("(max-width: 760px)").addEventListener("change", function () { setOpen(false); });
+    }
+
     function initMotion() {
         var prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
         var revealTargets = document.querySelectorAll(
@@ -3481,6 +3523,7 @@
         }
 
         initThemeMode(body);
+        initMobileNavigation();
         document.querySelectorAll('a[href="#calculator"]').forEach(function (link) {
             if (!document.getElementById("calculator")) link.setAttribute("href", sitePath("/") + "#calculator");
         });
