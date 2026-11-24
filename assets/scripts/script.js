@@ -11,6 +11,73 @@
         return (siteConfig.basePath || "") + value;
     }
 
+    function initAppInstall() {
+        var nav = document.querySelector(".nav");
+        if (!nav || !window.isSecureContext) return;
+
+        var manifest = document.createElement("link");
+        manifest.rel = "manifest";
+        manifest.href = sitePath("/manifest.webmanifest");
+        document.head.appendChild(manifest);
+
+        var icon = document.createElement("link");
+        icon.rel = "apple-touch-icon";
+        icon.href = sitePath("/assets/images/app-icon-180.png");
+        document.head.appendChild(icon);
+
+        if (window.matchMedia("(display-mode: standalone)").matches || navigator.standalone) return;
+
+        var isAppleMobile = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+            (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+        var isAndroid = /Android/.test(navigator.userAgent);
+        var installPrompt;
+        var button = document.createElement("button");
+        button.type = "button";
+        button.className = "app-install-button";
+        button.textContent = "Install";
+        button.hidden = !isAppleMobile && !isAndroid;
+        nav.appendChild(button);
+
+        window.addEventListener("beforeinstallprompt", function (event) {
+            event.preventDefault();
+            installPrompt = event;
+            button.hidden = false;
+        });
+        window.addEventListener("appinstalled", function () {
+            installPrompt = null;
+            button.hidden = true;
+        });
+
+        var dialog = document.createElement("dialog");
+        dialog.className = "app-install-dialog";
+        dialog.setAttribute("aria-labelledby", "app-install-title");
+        dialog.innerHTML = '<h2 id="app-install-title">Install Trusted Cash Loans</h2><p></p>' +
+            '<form method="dialog"><button class="app-install-button">Done</button></form>';
+        dialog.querySelector("p").textContent = isAppleMobile
+            ? "In Safari, tap Share, then Add to Home Screen. Turn on Open as Web App if shown, then tap Add."
+            : "Open your browser menu and choose Install app or Add to Home screen.";
+        document.body.appendChild(dialog);
+
+        button.addEventListener("click", async function () {
+            if (!installPrompt) {
+                dialog.showModal();
+                return;
+            }
+
+            var prompt = installPrompt;
+            installPrompt = null;
+            button.disabled = true;
+            try {
+                var result = await prompt.prompt();
+                if (result.outcome === "accepted") button.hidden = true;
+            } catch {
+                dialog.showModal();
+            } finally {
+                button.disabled = false;
+            }
+        });
+    }
+
     var editorState = {
         mode: "content",
         pendingContent: {},
@@ -3333,6 +3400,7 @@
 
         initThemeMode(body);
         initMobileNavigation();
+        initAppInstall();
         document.querySelectorAll('a[href="#calculator"]').forEach(function (link) {
             if (!document.getElementById("calculator")) link.setAttribute("href", sitePath("/") + "#calculator");
         });

@@ -12,7 +12,7 @@ let count = 0;
 for (const file of files) {
   if (!file.endsWith('.html') && !file.startsWith('assets/') &&
       !/^(financial-dashboard|loan-scenario-simulator)\/.*\.(css|js)$/.test(file) &&
-      !['robots.txt', 'sitemap.xml'].includes(file)) continue;
+      !['robots.txt', 'sitemap.xml', 'manifest.webmanifest'].includes(file)) continue;
   const target = path.join(output, file);
   fs.mkdirSync(path.dirname(target), { recursive: true });
   if (file.endsWith('.html')) {

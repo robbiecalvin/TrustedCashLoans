@@ -178,6 +178,37 @@ header,
 .btn,
 .btn-primary,
 .btn-secondary,
+.app-install-button {
+    min-height: 44px;
+    padding: 0.45rem 0.75rem;
+    border: 1px solid var(--accent-primary);
+    border-radius: 12px;
+    background: var(--theme-toggle-bg);
+    color: var(--text-strong);
+    font: inherit;
+    font-size: 0.86rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.app-install-button:focus-visible {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 2px;
+}
+
+.app-install-dialog {
+    width: min(26rem, calc(100% - 2rem));
+    padding: 1.25rem;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: var(--header-bg);
+    color: var(--text-strong);
+}
+
+.app-install-dialog::backdrop {
+    background: rgba(0, 0, 0, 0.64);
+}
+
 .theme-toggle {
     transition: background-color 0.3s ease, background 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
@@ -3219,6 +3250,15 @@ body[data-theme="light"] .progress-wrap {
         gap: 0 0.5rem;
         padding: 0.4rem 0;
         align-items: center;
+    }
+
+    .nav.nav-collapsible:has(> .app-install-button:not([hidden])) {
+        grid-template-columns: minmax(0, 1fr) 44px auto;
+    }
+
+    .nav-collapsible > .app-install-button {
+        grid-column: 3;
+        grid-row: 1;
     }
 
     .nav-collapsible .brand-mark {

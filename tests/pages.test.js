@@ -38,6 +38,17 @@ for (const base of ['', '/TrustedCashLoans']) {
       }
       inspect(output);
       assert.ok(pages > 800, 'Includes the full public site');
+      const manifestUrl = new URL(`${base}/manifest.webmanifest`, 'https://example.com');
+      const manifest = JSON.parse(fs.readFileSync(path.join(output, 'manifest.webmanifest'), 'utf8'));
+      assert.equal(new URL(manifest.start_url, manifestUrl).pathname, `${base}/`);
+      assert.equal(new URL(manifest.scope, manifestUrl).pathname, `${base}/`);
+      assert.equal(manifest.display, 'standalone');
+      for (const icon of manifest.icons) {
+        const iconUrl = new URL(icon.src, manifestUrl);
+        const png = fs.readFileSync(path.join(output, iconUrl.pathname.slice(base.length + 1)));
+        assert.equal(`${png.readUInt32BE(16)}x${png.readUInt32BE(20)}`, icon.sizes);
+      }
+      assert.ok(fs.existsSync(path.join(output, 'assets/images/app-icon-180.png')));
       for (const file of ['server.js', 'package.json', '.git', 'data', 'node_modules']) {
         assert.equal(fs.existsSync(path.join(output, file)), false, `Must not publish ${file}`);
       }
