@@ -9,9 +9,13 @@ Public HTML uses relative links, so images, styles, scripts, and links work even
 To build and validate locally with Node.js 18 or newer:
 
 ```sh
+python3 -m pip install -r requirements-build.txt
+npm ci
 npm test
 PAGES_BASE_PATH=/TrustedCashLoans npm run build:pages
 ```
+
+The static build creates real 180px, 192px and 512px PWA icons from the existing branded artwork using Pillow; the oversized original images remain source assets. This avoids changing the icon-size assertions in the test suite.
 
 The output is `_site/`. Serve it under `/TrustedCashLoans/` to simulate a repository Pages URL, or omit `PAGES_BASE_PATH` and serve it at `/` for a domain-root deployment. Do not open the files directly with `file://`.
 
