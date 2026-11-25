@@ -23,5 +23,11 @@ for (const file of files) {
   } else fs.copyFileSync(path.join(root, file), target);
   count++;
 }
+// Normalize installable PWA icons while preserving the source artwork.
+execFileSync('python3', [
+  'scripts/normalize-icons.py',
+  path.join(root, 'assets/images/app-icon-192.png'),
+  path.join(output, 'assets/images')
+], { cwd: root, stdio: 'inherit' });
 fs.writeFileSync(path.join(output, '.nojekyll'), '');
 console.log(`Built ${count} public files for ${base || '/'} in ${output}`);
