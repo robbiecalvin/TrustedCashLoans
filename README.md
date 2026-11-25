@@ -62,3 +62,7 @@ Configure `RESEND_API_KEY` securely and set `APPLICATION_EMAIL_FROM` to an addre
 A `Confirmation email status` column is added to the known application header automatically, preserving existing answers. Status `sent` means the provider accepted the email, not guaranteed inbox delivery. Missing email configuration records `not_configured`; provider failure records `failed`. The API still confirms the application was received and the page explains when an email could not be confirmed. Do not ask the applicant to resubmit just because email failed.
 
 Retries of the same application use the saved recipient and a stable Resend idempotency key. Confirmed sends are skipped. An uncertain send older than 23 hours is returned as `needs_review` rather than automatically sending again outside the provider's 24-hour idempotency window. There is no background email retry worker: operators must monitor failed/pending/unconfigured rows and follow up. Before going live, test an application to an inbox you control and verify both the Sheet status and actual email arrival. Tests use mocked provider responses; they do not send mail.
+
+## Deployment verification
+
+`tests/pages.test.js` checks generated static pages at root and repository base paths, verifies local resource resolution and manifest assets, and asserts that server and application data are excluded from the public build. These checks concern deployment packaging, not financial or regulatory compliance.
